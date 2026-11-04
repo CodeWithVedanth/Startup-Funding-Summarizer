@@ -25,7 +25,9 @@ This project demonstrates how Generative AI and workflow automation can simplify
 - **Email Service:** Gmail
 - **AI Technique:** Prompt Engineering and LLM-based Summarization
 
-## ⚙️ Workflow Architecture
+### Workflow Preview
+
+![Startup Funding Summarizer Workflow](workflow.png)
 
 1. **Schedule Trigger:** Starts the workflow automatically.
 2. **RSS Read:** Fetches startup funding news.
