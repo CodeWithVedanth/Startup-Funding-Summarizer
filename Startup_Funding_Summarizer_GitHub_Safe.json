@@ -1,0 +1,185 @@
+{
+  "name": "Startup Funding Summarizer",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {}
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        0
+      ],
+      "id": "1afc18ca-18ed-4e75-931c-86eb2b4af523",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "url": "REPLACE_WITH_YOUR_RSS_FEED_URL",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [
+        224,
+        0
+      ],
+      "id": "0da4fccf-a15d-4aa2-baab-497bb95010d0",
+      "name": "RSS Read"
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "title"
+            },
+            {
+              "fieldToAggregate": "link"
+            },
+            {
+              "fieldToAggregate": "contentSnippet"
+            },
+            {
+              "fieldToAggregate": "pubDate"
+            },
+            {
+              "fieldToAggregate": "creator"
+            },
+            {
+              "fieldToAggregate": "content"
+            },
+            {
+              "fieldToAggregate": "guid"
+            },
+            {
+              "fieldToAggregate": "isoDate"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        448,
+        0
+      ],
+      "id": "ea303225-2be3-4538-9462-7c5e38139f51",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "You are a funding analyst. Analyze the funding news articles from the RSS feed provided.\n\nFormat your response exactly as follows:\n\n═════════════════════════════════════════\nLARGEST FUNDING ROUNDS TODAY\n═════════════════════════════════════════\n\nDEAL #1\n────────────────────────────────────────────────────────────\nCompany Name: [Company name from article]\nLink: [Direct URL from RSS feed]\nWhat They Do: [1 sentence description of the company's business]\nFunding Amount: $[Amount in millions]\nRound Type: [Series A / Series B / Series C / Seed / Other]\nLead Investor: [Primary investor name]\nOther Investors: [List 2-3 other investors if mentioned]\nUse of Funds: [1 sentence - what they'll use money for]\nStrategic Importance: [1-2 sentences why this deal matters]\n\n(Repeat for DEAL #2 and DEAL #3)\n\n═════════════════════════════════════════\nFUNDING MARKET SNAPSHOT\n═════════════════════════════════════════\n\nTotal Capital Deployed: $[Total amount]\nNumber of Deals: [Count]\nMost Active Sectors: [Sector 1, Sector 2, Sector 3]\nGeographic Focus: [Which regions/countries getting funded]\nAverage Deal Size: $[Amount]\n\n═════════════════════════════════════════\nSTARTUPS TO WATCH\n═════════════════════════════════════════\n\nStartup 1: [Name]\nLink: [URL]\nWhat They Do: [1 sentence description]\nRaised: $[Amount]\nWhy Watch: [1 sentence - why this startup is important to monitor]\n\n(Repeat for Startup 2 and Startup 3)\n\n═════════════════════════════════════════\nSTRATEGIC INSIGHTS\n═════════════════════════════════════════\n\nMarket Opportunity: [1-2 sentences about emerging markets being funded]\nPotential Competitors: [1-2 sentences about new competitors entering the space]\nPartnership Potential: [1-2 sentences about companies we could partner with]\nAcquisition Target: [1-2 sentences about companies we should consider acquiring]",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        672,
+        0
+      ],
+      "id": "ecd05edc-491d-4b95-81a1-6fa5f1e81ffe",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        744,
+        224
+      ],
+      "id": "9408f6e3-7b2e-492a-83f7-9e1789765ff9",
+      "name": "Google Gemini Chat Model"
+    },
+    {
+      "parameters": {
+        "sendTo": "YOUR_EMAIL_ADDRESS",
+        "subject": "Daily Startup Funding News – AI Summary",
+        "message": "={{ $json.text.replace(/\\n/g, '<br>') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1024,
+        0
+      ],
+      "id": "2970777c-09dd-4012-bec3-1cabf03a2a18",
+      "name": "Send a message"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "RSS Read",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RSS Read": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "tags": []
+}
